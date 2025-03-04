@@ -1,5 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:pay_sphere_app/api/api_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pay_sphere_app/providers/auth_providers.dart';
+import 'package:pay_sphere_app/screens/demarrage.dart';
+
+import '../api/clientApp_api.dart';
+import '../services/storage.dart';
+import 'accueil.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -11,15 +20,51 @@ class Login extends StatefulWidget {
 class _Login extends State<Login> {
   final TextEditingController clientNumberController = TextEditingController();
   final TextEditingController codeController = TextEditingController();
+
   bool isCodeVisible = false;
   bool isSwitchOn = false;
+  bool isNumberSaved = false;
+  String? isLogin;
 
-  void checkClientNumber() {
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClientNumber();
+  }
+
+
+  Future<void> _loadClientNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    isLogin = await StorageService.getIsLogin();
+    String? savedNumber = prefs.getString('client_number');
+
+    if (savedNumber != null) {
+      setState(() {
+        clientNumberController.text = savedNumber;
+        isNumberSaved = true;
+      });
+    }
+    if (isLogin == "true") {
+      isCodeVisible = true;
+    }
+  }
+
+  Future<void> _saveClientNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('client_number', clientNumberController.text);
     setState(() {
-      isCodeVisible = clientNumberController.text.length >= 6;
+      isNumberSaved = true;
     });
   }
 
+  void checkClientNumber() {
+    setState(() {
+      if (clientNumberController.text.length >= 6) {
+        isCodeVisible = true;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +74,7 @@ class _Login extends State<Login> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(
-                    'https://img.freepik.com/photos-gratuite/personnes-appuyees-dans-bureau-debout_23-2147650958.jpg?t=st=1740874986~exp=1740878586~hmac=ee410c03e66702a68408605cd183c91b14d1e57bf5566fa3299243d8c87609ed&w=740'),
+                image:AssetImage("lib/assets/images/first.jpg"),
                 fit: BoxFit.cover,
               ),
             ),
@@ -40,9 +84,8 @@ class _Login extends State<Login> {
               color: Colors.black.withOpacity(0.7),
             ),
           ),
-          // Bouton retour
           Positioned(
-            top: 50, // Ajuste pour éviter le notch
+            top: 50,
             left: 20,
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
@@ -53,8 +96,6 @@ class _Login extends State<Login> {
               ),
             ),
           ),
-
-          // Carte de connexion
           Center(
             child: Container(
               padding: const EdgeInsets.all(25),
@@ -85,7 +126,7 @@ class _Login extends State<Login> {
                   TextField(
                     controller: clientNumberController,
                     onChanged: (value) => checkClientNumber(),
-                    maxLength: 8,
+                    maxLength: 99,
                     decoration: InputDecoration(
                       labelText: 'Numéro client',
                       filled: true,
@@ -96,9 +137,6 @@ class _Login extends State<Login> {
                       ),
                       prefixIcon: Icon(Icons.person, color: Colors.blue.shade700),
                     ),
-                    obscureText: true, // Cache le texte
-                    keyboardType: TextInputType.number, // Clavier numérique
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Autorise uniquement les chiffres
                   ),
                   if (isCodeVisible) ...[
                     const SizedBox(height: 15),
@@ -114,30 +152,28 @@ class _Login extends State<Login> {
                         ),
                         prefixIcon: Icon(Icons.lock, color: Colors.blue.shade700),
                       ),
-                      obscureText: true, // Cache le texte
-                      keyboardType: TextInputType.number, // Clavier numérique
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Autorise uniquement les chiffres
                     ),
                   ],
                   const SizedBox(height: 15),
-                  Row(
-                    children: [
-                      Text(
-                        'Mémoriser mon numéro client',
-                        style: TextStyle(color: Colors.blue.shade800),
-                      ),
-                      const Spacer(),
-                      Switch(
-                        value: isSwitchOn,
-                        onChanged: (bool value) {
-                          setState(() {
-                            isSwitchOn = value;
-                          });
-                        },
-                        activeColor: Colors.blue.shade700,
-                      )
-                    ],
-                  ),
+                  if (!isNumberSaved)
+                    Row(
+                      children: [
+                        Text(
+                          'Mémoriser mon numéro client',
+                          style: TextStyle(color: Colors.blue.shade800),
+                        ),
+                        const Spacer(),
+                        Switch(
+                          value: isSwitchOn,
+                          onChanged: (bool value) {
+                            setState(() {
+                              isSwitchOn = value;
+                            });
+                          },
+                          activeColor: Colors.blue.shade700,
+                        )
+                      ],
+                    ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -148,18 +184,48 @@ class _Login extends State<Login> {
                       backgroundColor: Colors.blue.shade700,
                       elevation: 5,
                     ),
-                    onPressed: () {},
+                    onPressed: () async {
+                      String numClient = clientNumberController.text;
+                      String code = codeController.text;
+
+                      if (numClient.isNotEmpty && code.isNotEmpty) {
+                        AuthProvider auth = AuthProvider();
+                        bool isLoggedIn = await auth.login(numClient, code);
+
+                        if (isLoggedIn) {
+                          // Récupérer les informations du client
+
+                          String? token = await StorageService.getAccessToken();
+                          await StorageService.setClientNumber(numClient, isSwitchOn);
+
+                          Map<dynamic, dynamic>? clientInfo = await ClientAppApi.getClientInfo(int.tryParse(numClient),token!,fields: "nom,prenom,num_client");
+
+                          if (clientInfo != null) {
+                            // Stocker les informations localement
+                            await StorageService.setClientName(clientInfo['nom'], clientInfo['prenom']);
+
+                          }
+                          if (isSwitchOn) {
+                            await _saveClientNumber();
+                            await StorageService.saveIsLogin("true");
+
+                          }
+
+                          // Rediriger vers la page de démarrage
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => AccueilPage()),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Connexion échouée. Vérifiez vos informations.")),
+                          );
+                        }
+                      }
+                    },
                     child: const Text(
                       'Continuer',
                       style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Numéro client ou code secret oublié ?',
-                      style: TextStyle(fontSize: 16, color: Colors.blue.shade800),
                     ),
                   ),
                 ],
@@ -171,4 +237,3 @@ class _Login extends State<Login> {
     );
   }
 }
-

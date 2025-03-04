@@ -1,134 +1,128 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
+
+
 
 class AccueilPage extends StatelessWidget {
-  const AccueilPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Image de fond
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(
-                  'https://img.freepik.com/photos-gratuite/personnes-appuyees-dans-bureau-debout_23-2147650958.jpg?t=st=1740874986~exp=1740878586~hmac=ee410c03e66702a68408605cd183c91b14d1e57bf5566fa3299243d8c87609ed&w=740',
-                ),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Overlay sombre pour assombrir l'image
-          Container(
-            color: Colors.black.withOpacity(0.7),
-          ),
-          // Contenu centré
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Sépare le titre et les boutons
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.blue[700],
+        elevation: 0,
+        title: Text("Accueil", style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(icon: Icon(Icons.notifications, color: Colors.white), onPressed: () {}),
+          IconButton(icon: Icon(Icons.power_settings_new, color: Colors.white), onPressed: () {}),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Comptes et assurances
+            Text("Comptes, assurances", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            SizedBox(height: 10),
+            Row(
               children: [
-                const SizedBox(), // Espace vide pour centrer le texte
+                Expanded(child: _buildAccountCard("Compte de chèques", "118,06 €", "-88,78 €")),
+                SizedBox(width: 10),
+                Expanded(child: _buildAccountCard("Livret A", "00 €", "0,00 €")),
+              ],
+            ),
+            SizedBox(height: 20),
+            // Section recommandée
+            Text("Sélectionnés pour vous", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            SizedBox(height: 10),
+            _buildRecommendationCard(),
+            SizedBox(height: 20),
+            // Mes Extras
+            Text("Mes Extras", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            SizedBox(height: 10),
+            _buildExtrasCard(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.blue[700],
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Accueil"),
+          BottomNavigationBarItem(icon: Icon(Icons.swap_horiz), label: "Paiements"),
+          BottomNavigationBarItem(icon: Icon(Icons.explore), label: "Découvrir"),
+          BottomNavigationBarItem(icon: Icon(Icons.contact_support), label: "Contact"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Vous"),
+        ],
+      ),
+    );
+  }
 
-                // Titre et slogan centré
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'PAY SPHERE',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade500,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Votre argent, sans frontières',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+  Widget _buildAccountCard(String title, String balance, String upcoming) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, spreadRadius: 2)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          SizedBox(height: 5),
+          Text("04/03/2025", style: TextStyle(color: Colors.grey)),
+          SizedBox(height: 10),
+          Text(balance, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          SizedBox(height: 5),
+          Text("À venir : $upcoming", style: TextStyle(color: Colors.grey)),
+        ],
+      ),
+    );
+  }
 
-                // Boutons en bas
-                Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity, // Prend toute la largeur
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          backgroundColor: Colors.blue.shade900,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              transitionDuration: const Duration(milliseconds: 300), // Durée de la transition
-                              pageBuilder: (context, animation, secondaryAnimation) => const Login(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0); // Départ à gauche
-                                const end = Offset.zero;         // Arrivée à la position normale
-                                const curve = Curves.easeIn;  // Courbe d'animation
-
-                                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                var offsetAnimation = animation.drive(tween);
-
-                                return SlideTransition(
-                                  position: offsetAnimation,
-                                  child: child,
-                                );
-                              },
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Accéder à mes comptes',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10), // Moins d’espace entre les boutons
-                    SizedBox(
-                      width: double.infinity, // Prend toute la largeur
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          backgroundColor: Colors.blue.shade700,
-                        ),
-                        onPressed: () {},
-                        child: const Text(
-                          'Devenir Client',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10), // Espacement réduit
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Aide et services',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _buildRecommendationCard() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, spreadRadius: 2)],
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.local_offer, color: Colors.blue[700], size: 40),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Envie d’économiser ?", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                SizedBox(height: 5),
+                Text("Profitez de Mes Extras, notre programme de cashback !", style: TextStyle(color: Colors.grey)),
               ],
             ),
           ),
+          Icon(Icons.close, color: Colors.grey),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExtrasCard() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, spreadRadius: 2)],
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.calendar_month, color: Colors.blue[700], size: 40),
+          SizedBox(width: 10),
+          Text("Mars 2025", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ],
       ),
     );

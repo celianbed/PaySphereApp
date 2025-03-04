@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pay_sphere_app/screens/accueil.dart';
+import 'package:pay_sphere_app/screens/demarrage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const AccueilPage(),
+      home: const DemarragePage(),
     );
   }
 }
