@@ -1,19 +1,12 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiClient {
   static String get baseUrl {
-    if (Platform.isAndroid) {
-      return "http://10.0.2.2:5000/PaySphereAPI"; // Émulateur Android (redirige vers localhost)
-    } else if (Platform.isIOS) {
-      return "http://127.0.0.1:5000/PaySphereAPI"; // iOS utilise localhost directement
-    } else {
-      return "http://127.0.0.1:5000/PaySphereAPI";
-    }
+      return "https://6e8a-207-162-114-170.ngrok-free.app/PaySphereAPI"; // Web
   }
-
   // Méthode générique pour envoyer une requête POST
   static Future<Map<String, dynamic>?> post(String endpoint, Map<String, dynamic> body, {String? token}) async {
     final response = await http.post(

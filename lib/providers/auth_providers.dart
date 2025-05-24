@@ -19,13 +19,11 @@ class AuthProvider with ChangeNotifier {
       _accessToken = data['access_token']!;
       _clientID = numClient;
       _isAuthenticated = true;
-      
-      print(clientID) ;
-
-      await StorageService.saveTokens(data['access_token']!, data['refresh_token']!);
-
-
+      await StorageService.setTokens(data['access_token']!, data['refresh_token']!);
       notifyListeners();
+
+      print (await StorageService.getAccessToken());
+
       return true;
     } else {
       print("Erreur de connexion");
@@ -41,10 +39,21 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Déconnexion utilisateur
-  void logout() async {
-    await StorageService.deleteTokens();
-    _accessToken = null;
+  Future<bool> logout() async {
+
+    String? token = await StorageService.getAccessToken();
+
+    print(token);
+    bool isLogout = await AuthApi.logout(token);
     _isAuthenticated = false;
+    _accessToken = null;
+    await StorageService.deleteTokens();
     notifyListeners();
+
+    if (isLogout) {
+      return true;
+    }
+
+    return false;
   }
 }

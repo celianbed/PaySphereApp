@@ -1,3 +1,5 @@
+import 'package:pay_sphere_app/services/storage.dart';
+
 import 'api_client.dart';
 
 class AuthApi {
@@ -6,7 +8,7 @@ class AuthApi {
     final data = await ApiClient.post('/login', {
       "num": numClient,
       "password": password
-    });
+    }).timeout(const Duration(seconds: 10));
 
     if (data != null && data.containsKey('access_token') && data.containsKey('refresh_token')) {
       return {
@@ -30,8 +32,11 @@ class AuthApi {
   }
 
   // Déconnexion (optionnel si le token est géré en local)
-  static Future<bool> logout() async {
-    // En local, il suffit de supprimer le token stocké
-    return true;
+  static Future<bool> logout(String? token) async {
+
+    final data = await ApiClient.post('/logout', {
+    },token: token );
+
+    return data != null;
   }
 }

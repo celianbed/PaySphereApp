@@ -1,7 +1,3 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
-
 import 'api_client.dart';
 
 class ClientAppApi {
@@ -15,10 +11,8 @@ class ClientAppApi {
     }
 
     if (response != null && response is Map<String, dynamic>) {
-      print(response);
       return response; // Retourne directement le JSON si c'est un Map
     }
-
 
 
     return null;
