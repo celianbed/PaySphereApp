@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  RegisterPageState createState() => RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class RegisterPageState extends State<RegisterPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -50,7 +52,7 @@ class _RegisterPageState extends State<RegisterPage> {
               padding: const EdgeInsets.all(25),
               margin: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
                   BoxShadow(

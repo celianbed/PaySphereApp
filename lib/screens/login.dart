@@ -13,10 +13,10 @@ class LoginPage extends StatefulWidget {
 
   LoginPage({super.key,required this.client});
   @override
-  _Login createState() => _Login();
+  Login createState() => Login();
 }
 
-class _Login extends State<LoginPage> {
+class Login extends State<LoginPage> {
   final TextEditingController clientNumberController = TextEditingController();
   final TextEditingController codeController = TextEditingController();
 
@@ -102,7 +102,7 @@ class _Login extends State<LoginPage> {
               top: 50,
               left: 20,
               child: GestureDetector(
-                onTap: () => context.pop(),
+                onTap: () => context.push("/demarrage",extra: widget.client),
                 child: const Icon(
                   Icons.chevron_left,
                   size: 30,
@@ -253,7 +253,9 @@ class _Login extends State<LoginPage> {
                           }
 
                           if (context.mounted) {
-                            context.push('/accueil', extra: widget.client);
+                            context.push('/accueil', extra: {
+                               "client" : widget.client
+                            });
                           }
 
                           codeController.clear();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth_providers.dart';
-import '../models/client_model.dart';
+import '../../providers/auth_providers.dart';
+import '../../models/client_model.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -23,10 +23,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       backgroundColor: Colors.blue.shade700,
       elevation: 2,
-      toolbarHeight: 56, // ⬅️ HAUTEUR RÉDUITE
+      toolbarHeight: 56,
       titleSpacing: 0,
       title: Padding(
-        padding: const EdgeInsets.only(top: 20.0, left: 16, right: 16), // ⬅️ ajusté aussi
+        padding: const EdgeInsets.only(top: 20.0, left: 16, right: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -42,7 +42,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 30,
+                    fontSize: 27,
                     color: Colors.white,
                   ),
                 ),
@@ -54,7 +54,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   IconButton(
                     icon: const Icon(Icons.notifications, color: Colors.white),
                     onPressed: () {
-                      // TODO : notifications
+                      context.push('/notifications', extra: client);
                     },
                   ),
                 IconButton(
@@ -76,13 +76,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                             ),
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(true),
-                              child: Text("Oui", style: TextStyle(color: Colors.blue)),
+                              child: const Text("Oui", style: TextStyle(color: Colors.blue)),
                             ),
                           ],
                         );
                       },
                     );
-
                     if (confirm == true) {
                       bool isNotLogged = await AuthProvider().logout();
                       if (isNotLogged && context.mounted) {
@@ -101,5 +100,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(70); // ✅ mis à jour ici aussi
+  Size get preferredSize => const Size.fromHeight(70);
 }

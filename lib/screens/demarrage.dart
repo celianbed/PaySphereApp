@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_sphere_app/providers/client_provider.dart';
 
 import '../models/client_model.dart';
 
@@ -12,6 +11,8 @@ class DemarragePage extends StatefulWidget {
     super.key,
     required this.client,
   });
+
+
 
   @override
   State<DemarragePage> createState() => _DemarragePageState();
@@ -36,7 +37,7 @@ class _DemarragePageState extends State<DemarragePage> {
               ),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.7)),
+          Container(color: Colors.black.withValues(alpha: 0.7)),
 
           // Contenu principal
           Column(

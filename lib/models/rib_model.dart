@@ -1,5 +1,3 @@
-import 'compte_model.dart';
-
 class Rib {
 
   int id;

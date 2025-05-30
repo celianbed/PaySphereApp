@@ -1,12 +1,18 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_sphere_app/models/client_model.dart';
+import 'package:pay_sphere_app/services/notification_service.dart';
 import 'package:pay_sphere_app/services/storage.dart';
 import 'package:pay_sphere_app/utils/routes.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
-  debugDefaultTargetPlatformOverride = TargetPlatform.android; // Force software rendering
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('fr_FR');
   runApp(MyApp());
 }
 
@@ -36,22 +42,20 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  double _progress = 0.0; // Valeur de progression de la barre
-  bool _isLoading = true; // Suivi de l'état de chargement
+  double _progress = 0.0;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    requestNotificationPermission();
       _initializeApp();
-    });
   }
   Future<void> _initializeApp() async {
     try {
       await _loadAssets();
       Client? client = await StorageService.getClient();
-
-      print(client);
+        NotificationService.initialize(context, flutterLocalNotificationsPlugin);
 
       if (mounted) {
         context.go('/demarrage', extra: client);
@@ -61,14 +65,19 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  void requestNotificationPermission() async {
+    final androidImplementation = flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidImplementation?.requestNotificationsPermission();
+  }
+
 
   Future<void> _loadAssets() async {
-    // Simuler le préchargement des images et autres ressources
-    await Future.delayed(const Duration(milliseconds: 500)); // Temps de préchargement simulé
+
+    await Future.delayed(const Duration(milliseconds: 500));
     await precacheImage(const AssetImage('lib/assets/images/first.jpg'), context);
     await precacheImage(const AssetImage('lib/assets/images/WERO_logo.png'), context);
 
-    // Animer la progression de la barre de chargement
+
     for (int i = 1; i <= 10; i++) {
       await Future.delayed(const Duration(milliseconds: 200));
       if (mounted) {
@@ -77,8 +86,6 @@ class _SplashScreenState extends State<SplashScreen> {
         });
       }
     }
-
-    // Après la fin de l'animation, finir le chargement
     if (mounted) {
       setState(() {
         _progress = 1.0;
@@ -92,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          color: Colors.blue.shade900, // Couleur de fond mise à jour
+          color: Colors.blue.shade900,
         ),
         child: Center(
           child: Column(

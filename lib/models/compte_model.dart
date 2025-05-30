@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:pay_sphere_app/models/rib_model.dart';
 import 'package:pay_sphere_app/models/virement_model.dart';
-
 import 'carte_model.dart';
 
 class Compte {

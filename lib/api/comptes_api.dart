@@ -1,17 +1,20 @@
+import 'package:flutter/cupertino.dart';
+
 import 'api_client.dart';
 
 class AccountApi {
-  // Récupérer la liste des comptes de l'utilisateur
-  static Future<List<dynamic>?> getAccounts(String token) async {
+
+  static Future<List<dynamic>?> getAccounts(String token, BuildContext? context) async {
+    // Appelle l'API pour récupérer la liste des comptes associés à l'utilisateur
+    // Retourne uniquement la clé 'accounts' de la réponse
     final data = await ApiClient.get('/comptes', token: token);
     return data?['accounts']; // Liste des comptes
   }
 
-  // Récupérer le détail d'un compte spécifique
-  static Future<Map<String, dynamic>?> getAccountDetails(String token,
-      int accountId) async {
+  static Future<Map<String, dynamic>?> getAccountDetails(String token, int accountId, BuildContext? context) async {
+    // Appelle l'API pour récupérer les détails d'un compte spécifique
+    // Utilise l'identifiant du compte pour construire l'URL
     final data = await ApiClient.get('/comptes/$accountId', token: token);
-    return data;
+    return data; // Retourne les détails du compte sous forme de Map
   }
-
 }

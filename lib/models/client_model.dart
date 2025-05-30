@@ -1,3 +1,4 @@
+import 'beneficiare_model.dart';
 import 'compte_model.dart';
 
 class Client {
@@ -6,11 +7,12 @@ class Client {
   final String nom;
   final String prenom;
   final int? numClient;
-  final String email;
+  late String email;
   final String adresse;
-  final String numeroDeTelephone;
+  late  String numeroDeTelephone;
   final DateTime dateNaissance;
   final List<Compte> comptes;
+  late  List<Beneficiaire> beneficiaires;
 
   Client({
     required this.id,
@@ -23,6 +25,7 @@ class Client {
     required this.numeroDeTelephone,
     required this.dateNaissance,
     required this.comptes,
+    required this.beneficiaires
   });
 
   factory Client.fromJson(Map<String, dynamic> json) {
@@ -38,6 +41,9 @@ class Client {
       dateNaissance: DateTime.parse(json['date_naissance']),
       comptes: (json['comptes'] as List)
         .map((item) => Compte.fromJson(item))
+        .toList(),
+      beneficiaires: (json['beneficiaires'] as List)
+        .map((item) => Beneficiaire.fromJson(item))
         .toList());
   }
   Map<String, dynamic> toJson() {
@@ -52,6 +58,7 @@ class Client {
       'numero_de_telephone': numeroDeTelephone,
       'date_naissance': dateNaissance.toIso8601String(),
       'comptes': comptes.map((compte) => compte.toJson()).toList(),
+      'beneficiaires': beneficiaires.map((beneficiaire) => beneficiaire.toJson()).toList(),
     };
   }
 

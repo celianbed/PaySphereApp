@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:pay_sphere_app/screens/custom_app_bar.dart';
 import '../../../models/client_model.dart';
-import '../../navigation_wrapper.dart';
+import '../../autres/navigation_wrapper.dart';
+import '../../autres/custom_app_bar.dart';
 
 class CartesPage extends StatelessWidget {
   final Client? client;
@@ -34,8 +35,9 @@ class CartesPage extends StatelessWidget {
         backgroundColor: Colors.grey[100],
         appBar: CustomAppBar(
           title: "Cartes",
-          client: client,
-          onBack: () => Navigator.pop(context),
+          onBack: () => context.go('/paiements',extra: {
+            "client" : client
+          }),
           showNotifications: false,
         ),
         body: Padding(
@@ -55,80 +57,109 @@ class CartesPage extends StatelessWidget {
                   ),
                 ),
               ...client!.comptes.expand((compte) => compte.cartes).map((carte) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                final isActive = carte.active;
+                return GestureDetector(
+                  onTap: isActive
+                      ? () {
+                    context.push(
+                      '/paiements/cartes/details-carte',
+                      extra: {
+                        'carte': carte,
+                        'client': client,
+                      },
+                    );
+                  }
+                      : null, // Désactive l'appui si carte inactive
+                  child: Opacity(
+                    opacity: isActive ? 1.0 : 0.5, // Grisé si carte opposée
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withValues(alpha:  0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        border: isActive
+                            ? null
+                            : Border.all(color: Colors.red.shade400, width: 2), // Optionnel : contour rouge si opposée
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Icone VISA (à personnaliser plus tard)
-                      Container(
-                        width: 50,
-                        height: 35,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade300,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'VISA',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 35,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade300,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'VISA',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  carte.typeCarte.nom,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                isActive
+                                    ? Text(
+                                  "N° ${maskNumeroCarte(carte.numeroCarte)}",
+                                  style: const TextStyle(color: Colors.black87),
+                                )
+                                    : Text(
+                                  "Carte opposée",
+                                  style: TextStyle(
+                                    color: Colors.red.shade400,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  "Expire à fin ${formatDate(carte.dateExpiration)}",
+                                  style: const TextStyle(color: Colors.black87),
+                                ),
+                                Text(
+                                  "Compte de chèques N° **** ${carte.numeroCompte.toString().padLeft(4, '0').substring(carte.numeroCompte.toString().length - 4)}",
+                                  style: const TextStyle(color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right, color: Colors.grey),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              carte.typeCarte.nom,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.black),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "N° ${maskNumeroCarte(carte.numeroCarte)}",
-                              style: const TextStyle(color: Colors.black87),
-                            ),
-                            Text(
-                              "Expire à fin ${formatDate(carte.dateExpiration)}",
-                              style: const TextStyle(color: Colors.black87),
-                            ),
-                            Text(
-                              "Compte de chèques N° **** ${carte.numeroCompte.toString().padLeft(4, '0').substring(carte.numeroCompte.toString().length - 4)}",
-                              style: const TextStyle(color: Colors.black87),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
+                    ),
                   ),
                 );
-              }).toList(),
+              }),
+
               const SizedBox(height: 20),
               Center(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                    side: const BorderSide(color: Colors.green),
+                    foregroundColor: Colors.blue,
+                    side: const BorderSide(color: Colors.blue),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 14),
                     shape: RoundedRectangleBorder(
