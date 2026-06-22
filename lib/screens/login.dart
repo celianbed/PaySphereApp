@@ -240,13 +240,19 @@ class Login extends State<LoginPage> {
                           );
 
                           if (!isLoggedIn) {
-                            showErrorDialog("Erreur", "Identifiants incorrects. Veuillez réessayer.");
+                            showErrorDialog("Erreur de connexion", "Identifiants incorrects ou erreur serveur. Vérifiez votre numéro client et votre code secret.");
                             setState(() => isLoading = false);
                             return;
                           }
 
                           final token = await StorageService.getAccessToken();
-                          await fetchClient(numClient, token!);
+                          if (token == null) {
+                            showErrorDialog("Erreur", "Token d'accès non disponible après authentification.");
+                            setState(() => isLoading = false);
+                            return;
+                          }
+
+                          await fetchClient(numClient, token);
 
                           if (isSwitchOn) {
                             await saveClient();

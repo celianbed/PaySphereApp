@@ -26,7 +26,7 @@ class CarteApi {
     );
 
     // Vérifie si le message de succès est présent dans la réponse
-    return data != null && data['message'] == 'Plafond mis à jour avec succès';
+    return data != null && data['message'] == 'Plafond mis à jour';
   }
 
   static Future<bool> setOptionTravel(int carteId, bool active, String token) async {

@@ -39,7 +39,7 @@ class Compte {
       statutNom: json["statut_nom"],
       solde: (json["solde"] as num).toDouble(),
       dateOuverture: DateTime.parse(json["date_ouverture"]),
-      rib: Rib.fromJson(json["rib"]),
+      rib: json["rib"] is Map ? Rib.fromJson(json["rib"]) : null,
       virementEnvoye: (json['virements_envoye'] as List)
           .map((item) => Virement.fromJson(item))
           .toList(),

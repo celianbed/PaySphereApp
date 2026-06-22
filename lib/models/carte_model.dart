@@ -48,7 +48,7 @@ class Carte {
       'numero_carte': numeroCarte,
       'date_expiration': dateExpiration,
       'code_securite': codeSecurite,
-      'type_carte': typeCarte,
+      'type_carte': typeCarte.toJson(),
       'numero_compte': numeroCompte,
       'active': active,
       'plafond': plafond,

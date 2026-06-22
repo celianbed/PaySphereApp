@@ -80,7 +80,7 @@ class _AccueilPage extends State<AccueilPage> {
     );
 
     // Marque la notification comme vue dans le stockage local
-    await StorageService.marquerCommeVue(notifId);
+    await NotificationApi.marquerCommeVue(notifId);
   }
 
   @override

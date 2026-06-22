@@ -5,7 +5,7 @@ version: 1.0.0+1
 
 
 environment:
-  sdk: "3.7.0"
+  sdk: ">=3.7.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -26,6 +26,7 @@ dependencies:
   image_cropper: ^9.1.0
   flutter_launcher_icons: ^0.14.3
   provider: ^6.1.5
+  flutter_dotenv: ^5.2.1
 
 
 
@@ -38,6 +39,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - lib/assets/images/first.jpg
     - lib/assets/images/WERO_logo.png
     - lib/assets/avatar/00.jpg

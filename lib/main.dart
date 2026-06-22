@@ -1,18 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_sphere_app/api/api_client.dart';
 import 'package:pay_sphere_app/models/client_model.dart';
 import 'package:pay_sphere_app/services/notification_service.dart';
 import 'package:pay_sphere_app/services/storage.dart';
 import 'package:pay_sphere_app/utils/routes.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await initializeDateFormatting('fr_FR');
+
+  ApiClient.onSessionExpired = (message) {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      NotificationService.stop();
+      GoRouter.of(context).go('/login');
+    }
+  };
+
   runApp(MyApp());
 }
 
@@ -49,13 +63,15 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     requestNotificationPermission();
-      _initializeApp();
+    _initializeApp();
   }
+
   Future<void> _initializeApp() async {
     try {
       await _loadAssets();
       Client? client = await StorageService.getClient();
-        NotificationService.initialize(context, flutterLocalNotificationsPlugin);
+      NotificationService.initialize(
+          context, flutterLocalNotificationsPlugin);
 
       if (mounted) {
         context.go('/demarrage', extra: client);
@@ -66,17 +82,18 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void requestNotificationPermission() async {
-    final androidImplementation = flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final androidImplementation = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
     await androidImplementation?.requestNotificationsPermission();
   }
 
-
   Future<void> _loadAssets() async {
-
     await Future.delayed(const Duration(milliseconds: 500));
-    await precacheImage(const AssetImage('lib/assets/images/first.jpg'), context);
-    await precacheImage(const AssetImage('lib/assets/images/WERO_logo.png'), context);
-
+    await precacheImage(
+        const AssetImage('lib/assets/images/first.jpg'), context);
+    await precacheImage(
+        const AssetImage('lib/assets/images/WERO_logo.png'), context);
 
     for (int i = 1; i <= 10; i++) {
       await Future.delayed(const Duration(milliseconds: 200));
@@ -127,13 +144,13 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 20),
               _isLoading
                   ? const Text(
-                'Chargement...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              )
+                      'Chargement...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    )
                   : Container(),
             ],
           ),

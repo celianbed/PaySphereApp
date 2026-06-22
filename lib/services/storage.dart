@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../api/api_client.dart';
 import '../models/client_model.dart';
 
 class StorageService {
@@ -13,15 +12,11 @@ class StorageService {
   static Future<void> setTokens(String accessToken, String refreshToken) async {
     await _storage.write(key: "access_token", value: accessToken);
     await _storage.write(key: "refresh_token", value: refreshToken);
-
-
   }
 
-  static Future<void> marquerCommeVue(int id) async {
-    final token = await StorageService.getAccessToken();
-    await ApiClient.post("/notifications/$id/lu", {}, token: token);
+  static Future<void> setAccessToken(String accessToken) async {
+    await _storage.write(key: "access_token", value: accessToken);
   }
-
 
   static Future<String?> getAccessToken() async {
     return await _storage.read(key: "access_token");
@@ -38,16 +33,13 @@ class StorageService {
 
   static Future<void> setClient(Client? client) async {
     final String clientJson = json.encode(client?.toJson());
-
     await _storage.write(key: "Client", value: clientJson);
   }
 
   static Future<Client?> getClient() async {
     final String? clientJson = await _storage.read(key: "Client");
 
-    if (clientJson == null) return null; // Si aucune donnée, on retourne null
-
-    debugPrint(clientJson,wrapWidth: 1024);
+    if (clientJson == null) return null;
 
     try {
       final Map<String, dynamic> clientMap = json.decode(clientJson);
@@ -63,7 +55,7 @@ class StorageService {
 
   static Future<void> setClientNum(String clientNumber) async {
     final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('client_number', clientNumber);
+    await prefs.setString('client_number', clientNumber);
   }
 
   static Future<String?> getClientNum() async {
