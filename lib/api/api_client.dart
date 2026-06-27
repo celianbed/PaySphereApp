@@ -185,7 +185,7 @@ class ApiClient {
         return {
           'error': true,
           'status': statusCode,
-          'message': responseBody,
+          'message': "Une erreur est survenue. Veuillez réessayer.",
         };
       }
     }
