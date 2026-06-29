@@ -17,37 +17,26 @@ class _SimulationPretPageState extends State<SimulationPretPage> {
   final TextEditingController _montantController = TextEditingController();
   int _dureeMois = 12;
   Map<String, dynamic>? _simulation;
-  bool _isLoading = false;
   bool _isSubmitting = false;
   String? _erreur;
 
   final List<int> _durees = [12, 24, 36, 48, 60];
 
-  Future<void> _simuler() async {
+  void _simuler() {
     final montant = double.tryParse(_montantController.text);
     if (montant == null || montant <= 0) {
       setState(() => _erreur = "Veuillez entrer un montant valide.");
       return;
     }
 
+    final result = PretApi.simuler(montant, _dureeMois);
     setState(() {
-      _isLoading = true;
-      _erreur = null;
-      _simulation = null;
-    });
-
-    final token = await StorageService.getAccessToken();
-    if (token == null) return;
-
-    final result = await PretApi.simuler(token, montant, _dureeMois);
-    setState(() {
-      _isLoading = false;
-      if (result != null && result['error'] == true) {
-        _erreur = result['message'] ?? "Erreur lors de la simulation.";
-      } else if (result != null) {
+      if (result != null) {
         _simulation = result;
+        _erreur = null;
       } else {
-        _erreur = "Impossible de simuler ce prêt. Vérifiez le montant (500€ – 75 000€).";
+        _simulation = null;
+        _erreur = "Vérifiez le montant (500€ – 75 000€).";
       }
     });
   }
@@ -138,20 +127,14 @@ class _SimulationPretPageState extends State<SimulationPretPage> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _simuler,
+                      onPressed: _simuler,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade700,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
-                          : const Text("Simuler",
-                              style: TextStyle(color: Colors.white, fontSize: 16)),
+                      child: const Text("Simuler",
+                          style: TextStyle(color: Colors.white, fontSize: 16)),
                     ),
                   ),
                 ],

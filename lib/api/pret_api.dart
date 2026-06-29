@@ -1,21 +1,41 @@
 import 'api_client.dart';
 
 class PretApi {
-  static Future<Map<String, dynamic>?> simuler(
-      String token, double montant, int dureeMois) async {
-    final data = await ApiClient.post(
-      '/prets/simulation',
-      {"montant": montant, "duree_mois": dureeMois},
-      token: token,
-    );
-    if (data == null) return null;
-    if (data.containsKey('simulation')) {
-      return Map<String, dynamic>.from(data['simulation']);
+  static Map<String, dynamic>? simuler(double montant, int dureeMois) {
+    if (montant < 500 || montant > 75000) return null;
+    if (dureeMois <= 0) return null;
+
+    double tauxAnnuel;
+    if (dureeMois <= 12) {
+      tauxAnnuel = 3.5;
+    } else if (dureeMois <= 36) {
+      tauxAnnuel = 4.2;
+    } else {
+      tauxAnnuel = 4.9;
     }
-    if (data['error'] == true) {
-      return {'error': true, 'message': data['message'] ?? 'Erreur inconnue'};
+
+    final tauxMensuel = tauxAnnuel / 100 / 12;
+    final puissance = _pow(1 + tauxMensuel, dureeMois);
+    final mensualite = montant * tauxMensuel * puissance / (puissance - 1);
+    final coutTotal = mensualite * dureeMois;
+    final coutInterets = coutTotal - montant;
+
+    return {
+      'montant': montant,
+      'duree_mois': dureeMois,
+      'taux_interet': tauxAnnuel,
+      'mensualite': mensualite,
+      'cout_total': coutTotal,
+      'cout_interets': coutInterets,
+    };
+  }
+
+  static double _pow(double base, int exp) {
+    double result = 1.0;
+    for (int i = 0; i < exp; i++) {
+      result *= base;
     }
-    return data;
+    return result;
   }
 
   static Future<Map<String, dynamic>?> creerPret(
