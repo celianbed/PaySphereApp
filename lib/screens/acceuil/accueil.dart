@@ -178,6 +178,7 @@ class _AccueilPage extends State<AccueilPage> {
         })),
         _quickAction(Icons.qr_code, "Scanner", () {}),
         _quickAction(Icons.account_balance, "RIB", () => context.push('/rib', extra: widget.client)),
+        _quickAction(Icons.request_quote, "Prêt", () => context.push('/prets', extra: {"client": widget.client})),
       ],
     );
   }

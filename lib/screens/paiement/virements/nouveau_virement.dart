@@ -4,6 +4,7 @@ import 'package:pay_sphere_app/models/beneficiare_model.dart';
 import 'package:pay_sphere_app/models/client_model.dart';
 import 'package:pay_sphere_app/screens/autres/custom_app_bar.dart';
 import '../../../api/virement_api.dart';
+import '../../../services/notification_service.dart';
 import '../../../services/storage.dart';
 
 class NouveauVirementPage extends StatefulWidget {
@@ -65,6 +66,8 @@ class _NouveauVirementPageState extends State<NouveauVirementPage> {
 
         if (success && context.mounted) {
           widget.client?.comptes[0].solde -= montant;
+
+          NotificationService.checkNow();
 
           context.push('/confirmation', extra: {
             'titre': 'Virement effectué',

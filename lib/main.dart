@@ -22,7 +22,7 @@ void main() async {
   ApiClient.onSessionExpired = (message) {
     final context = navigatorKey.currentContext;
     if (context != null) {
-      NotificationService.stop();
+      NotificationService.clear();
       GoRouter.of(context).go('/login');
     }
   };
@@ -33,7 +33,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
-  final GoRouter router = Routes.routerConfiguration();
+  final GoRouter router = Routes.routerConfiguration(navigatorKey: navigatorKey);
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
       await _loadAssets();
       Client? client = await StorageService.getClient();
       NotificationService.initialize(
-          context, flutterLocalNotificationsPlugin);
+          flutterLocalNotificationsPlugin, navigatorKey);
 
       if (mounted) {
         context.go('/demarrage', extra: client);

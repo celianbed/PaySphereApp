@@ -32,10 +32,13 @@ import '../screens/paiement/cheques.dart';
 import '../screens/paiement/rib.dart';
 import '../screens/paiement/virement.dart';
 import '../screens/paiement/virements/gerer_beneficaire.dart';
+import '../screens/pret/prets_page.dart';
+import '../screens/pret/simulation_pret_page.dart';
 
 class Routes {
-  static GoRouter routerConfiguration() {
+  static GoRouter routerConfiguration({GlobalKey<NavigatorState>? navigatorKey}) {
     return GoRouter(
+      navigatorKey: navigatorKey,
       routes: <RouteBase>[
         GoRoute(
           path: '/demarrage',
@@ -356,6 +359,22 @@ class Routes {
             final client = extras['client'] as Client;
 
             return ChangerTelephonePage(client: client, numeroActuel:client.numeroDeTelephone);
+          },
+        ),
+        GoRoute(
+          path: '/prets',
+          builder: (context, state) {
+            final extras = state.extra as Map<String, dynamic>;
+            final client = extras['client'] as Client?;
+            return PretsPage(client: client);
+          },
+        ),
+        GoRoute(
+          path: '/prets/simulation',
+          builder: (context, state) {
+            final extras = state.extra as Map<String, dynamic>;
+            final client = extras['client'] as Client?;
+            return SimulationPretPage(client: client);
           },
         ),
         GoRoute(

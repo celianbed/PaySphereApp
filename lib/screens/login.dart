@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_sphere_app/providers/client_provider.dart';
 import 'package:pay_sphere_app/providers/auth_providers.dart';
+import '../main.dart';
 import '../models/client_model.dart';
+import '../services/notification_service.dart';
 import '../services/storage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -253,12 +255,11 @@ class Login extends State<LoginPage> {
                           }
 
                           await fetchClient(numClient, token);
-
-                          if (isSwitchOn) {
-                            await saveClient();
-                          }
+                          await saveClient();
 
                           if (context.mounted) {
+                            await NotificationService.initialize(
+                                flutterLocalNotificationsPlugin, navigatorKey);
                             context.push('/accueil', extra: {
                                "client" : widget.client
                             });

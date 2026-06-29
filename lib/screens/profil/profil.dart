@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pay_sphere_app/services/notification_service.dart';
 import 'package:pay_sphere_app/services/storage.dart';
 import '../../models/client_model.dart';
 import '../../providers/auth_providers.dart';
@@ -274,6 +275,7 @@ class _ProfilPageState extends State<ProfilPage> {
                   onPressed: () async {
                       bool isNotLogged = await AuthProvider().logout();
                       if (isNotLogged && context.mounted) {
+                        NotificationService.clear();
                         context.go('/demarrage');
                         StorageService.deleteClient();
                         ScaffoldMessenger.of(context).showSnackBar(

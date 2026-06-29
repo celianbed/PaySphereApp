@@ -30,17 +30,21 @@ class _PaiementEnLignePageState extends State<PaiementEnLignePage> {
   Future<void> togglePaiementEnLigne(bool newValue) async {
     setState(() => isLoading = true);
 
-    String? token = await StorageService.getAccessToken();
-    bool success = await CarteApi.setPaiementEnLigne(widget.carte.id, newValue, token ?? "");
+    try {
+      String? token = await StorageService.getAccessToken();
+      bool success = await CarteApi.setPaiementEnLigne(widget.carte.id, newValue, token ?? "");
 
-    if (success && mounted) {
-      setState(() {
-        paimentEnLigne = newValue;
-        widget.carte.paimentEnLigne = newValue;
-      });
+      if (success && mounted) {
+        setState(() {
+          paimentEnLigne = newValue;
+          widget.carte.paimentEnLigne = newValue;
+        });
+      }
+    } catch (_) {
+      // Erreur réseau ou API
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
-
-    setState(() => isLoading = false);
   }
   @override
   Widget build(BuildContext context) {

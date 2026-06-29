@@ -46,10 +46,14 @@ class ConfirmationPage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   if(context.mounted) {
-                    context.push(futurePush!,extra: {
-                      "client" : client,
-                      "carte" : client?.comptes[0].cartes[0],
-                    });
+                    if (futurePush != null) {
+                      context.push(futurePush!, extra: {
+                        "client": client,
+                        "carte": client?.comptes[0].cartes[0],
+                      });
+                    } else {
+                      onFinish?.call();
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(

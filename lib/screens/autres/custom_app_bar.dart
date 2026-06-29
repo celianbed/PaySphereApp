@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
 import '../../models/client_model.dart';
+import '../../services/notification_service.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -52,8 +53,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 if (showNotifications)
                   IconButton(
-                    icon: const Icon(Icons.notifications, color: Colors.white),
+                    icon: Badge(
+                      isLabelVisible: NotificationService.unreadCount > 0,
+                      label: Text(
+                        NotificationService.unreadCount.toString(),
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                      child: const Icon(Icons.notifications, color: Colors.white),
+                    ),
                     onPressed: () {
+                      NotificationService.resetUnreadCount();
                       context.push('/notifications', extra: client);
                     },
                   ),

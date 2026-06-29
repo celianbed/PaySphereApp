@@ -7,43 +7,55 @@ import 'package:pay_sphere_app/models/client_model.dart';
 import 'package:pay_sphere_app/services/storage.dart';
 
 class NotificationService {
-  static late final FlutterLocalNotificationsPlugin _plugin;
+  static FlutterLocalNotificationsPlugin? _plugin;
 
   static Timer? _timer;
   static Client? _client;
 
   static List<Map<String, dynamic>> notifications = [];
 
+  static GlobalKey<NavigatorState>? _navigatorKey;
+
   static Future<void> initialize(
-    BuildContext context,
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+    GlobalKey<NavigatorState> navigatorKey,
   ) async {
-    _plugin = flutterLocalNotificationsPlugin;
+    _navigatorKey = navigatorKey;
 
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings();
-    const InitializationSettings settings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
+    if (_plugin == null) {
+      _plugin = flutterLocalNotificationsPlugin;
 
-    await _plugin.initialize(settings);
+      const AndroidInitializationSettings androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const DarwinInitializationSettings iosSettings =
+          DarwinInitializationSettings();
+      const InitializationSettings settings =
+          InitializationSettings(android: androidSettings, iOS: iosSettings);
 
-    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    await androidImpl?.requestNotificationsPermission();
+      await _plugin!.initialize(settings);
+
+      final androidImpl = _plugin!.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await androidImpl?.requestNotificationsPermission();
+    }
+
+    notifications.clear();
+    NotificationApi.notifications.clear();
+    unreadCount = 0;
 
     _client = await StorageService.getClient();
 
     _timer?.cancel();
     _timer = Timer.periodic(
       const Duration(seconds: 30),
-      (_) => _checkNewNotifications(context),
+      (_) => _checkNewNotifications(),
     );
   }
 
-  static Future<void> _checkNewNotifications(BuildContext context) async {
+  static Future<void> _checkNewNotifications() async {
     if (_client == null) return;
+    final context = _navigatorKey?.currentContext;
+    if (context == null) return;
 
     final token = await StorageService.getAccessToken();
     if (token == null) {
@@ -61,11 +73,24 @@ class NotificationService {
     if (newNotifs.isNotEmpty) {
       notifications.addAll(newNotifs);
 
-      final notif = newNotifs.first;
-      unreadCount++;
-      await _showNotification("Nouvelle notification", notif["message"]);
+      for (final notif in newNotifs) {
+        unreadCount++;
+        final type = notif["type_notification"] ?? "";
+        final title = type == "virement_recu"
+            ? "Virement reçu"
+            : type == "virement_envoye"
+                ? "Virement envoyé"
+                : "PaySphere";
+        await _showNotification(title, notif["message"]);
+      }
     }
   }
+
+  static Future<void> checkNow() async {
+    await _checkNewNotifications();
+  }
+
+  static int _notifId = 0;
 
   static Future<void> _showNotification(String title, String body) async {
     const AndroidNotificationDetails androidDetails =
@@ -75,9 +100,14 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
     const NotificationDetails details =
-        NotificationDetails(android: androidDetails);
-    await _plugin.show(0, title, body, details);
+        NotificationDetails(android: androidDetails, iOS: iosDetails);
+    await _plugin?.show(_notifId++, title, body, details);
   }
 
   static void stop() {
@@ -85,7 +115,18 @@ class NotificationService {
     _timer = null;
   }
 
+  static void clear() {
+    stop();
+    notifications.clear();
+    NotificationApi.notifications.clear();
+    unreadCount = 0;
+    _notifId = 0;
+    _client = null;
+  }
+
   static void showSessionExpiredDialog(BuildContext context) {
+    final client = _client;
+    clear();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -99,7 +140,7 @@ class NotificationService {
               Navigator.of(ctx).pop();
               await StorageService.deleteTokens();
               if (context.mounted) {
-                context.go('/login', extra: _client);
+                context.go('/login', extra: client);
               }
             },
             child: const Text("OK"),
