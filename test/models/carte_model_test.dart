@@ -46,7 +46,9 @@ void main() {
     test('ignore un cryptogramme résiduel sans échouer', () {
       // Cas d'une API non encore mise à jour : le champ excédentaire ne doit
       // pas empêcher le décodage.
-      final carte = Carte.fromJson(_carteJson(surcharges: {'code_securite': '123'}));
+      final carte = Carte.fromJson(
+        _carteJson(surcharges: {'code_securite': '123'}),
+      );
 
       expect(carte.id, 7);
     });

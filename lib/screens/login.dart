@@ -11,10 +11,16 @@ import '../services/notification_service.dart';
 import '../services/storage.dart';
 
 class LoginPage extends StatefulWidget {
+  /// Client mémorisé lors d'une session précédente, s'il y en a un.
+  ///
+  /// Valeur initiale uniquement : le client courant évolue pendant la
+  /// connexion et appartient donc à l'état, pas au widget. Un champ mutable
+  /// dans un `StatefulWidget` est ignoré lors des reconstructions et ne
+  /// déclenche aucun rafraîchissement.
+  final Client? clientInitial;
 
-  Client? client;
+  const LoginPage({super.key, required this.clientInitial});
 
-  LoginPage({super.key,required this.client});
   @override
   Login createState() => Login();
 }
@@ -36,9 +42,14 @@ class Login extends State<LoginPage> {
   /// une minute et conclut que l'application est plantée.
   String? messageReveil;
 
+  /// Client courant : issu de la session mémorisée, puis rechargé après
+  /// authentification.
+  Client? client;
+
   @override
   void initState() {
     super.initState();
+    client = widget.clientInitial;
     ApiClient.onReveilServeur = () {
       if (mounted) {
         setState(() {
@@ -59,16 +70,16 @@ class Login extends State<LoginPage> {
   }
 
   Future<void> _loadClientSavedInfos() async {
-    if (widget.client != null) {
+    if (client != null) {
       setState(() {
-        clientNumberController.text = widget.client!.numClient.toString();
+        clientNumberController.text = client!.numClient.toString();
       });
       isCodeVisible = true;
 
     }
   }
     Future<void> saveClient() async {
-      await StorageService.setClient(widget.client);
+      await StorageService.setClient(client);
     }
     void checkClientNumber() {
       setState(() {
@@ -81,7 +92,7 @@ class Login extends State<LoginPage> {
       final clientProvider = ClientProvider();
       await clientProvider.loadClient(int.tryParse(numClient), token);
       setState(() {
-        widget.client = clientProvider.client;
+        client = clientProvider.client;
       });
     }
 
@@ -125,7 +136,7 @@ class Login extends State<LoginPage> {
               top: 50,
               left: 20,
               child: GestureDetector(
-                onTap: () => context.push("/demarrage",extra: widget.client),
+                onTap: () => context.push("/demarrage", extra: client),
                 child: const Icon(
                   Icons.chevron_left,
                   size: 30,
@@ -207,7 +218,7 @@ class Login extends State<LoginPage> {
                       ),
                     ],
                     const SizedBox(height: 15),
-                    if (widget.client == null)
+                    if (client == null)
                       Row(
                         children: [
                           Text(
@@ -294,7 +305,7 @@ class Login extends State<LoginPage> {
                             await NotificationService.initialize(
                                 flutterLocalNotificationsPlugin, navigatorKey);
                             context.push('/accueil', extra: {
-                               "client" : widget.client
+                               "client" : client
                             });
                           }
 

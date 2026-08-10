@@ -26,20 +26,27 @@ void main() {
     test('accepte un montant transmis comme nombre', () {
       // Un changement de type de colonne côté API suffirait à produire ce cas.
       expect(Virement.fromJson(_virementJson(montant: 1500)).montant, 1500.00);
-      expect(Virement.fromJson(_virementJson(montant: 1500.5)).montant, 1500.50);
+      expect(
+        Virement.fromJson(_virementJson(montant: 1500.5)).montant,
+        1500.50,
+      );
     });
 
     test('ne lève pas d\'exception sur un montant illisible', () {
       // Mieux vaut afficher zéro qu'un écran blanc : l'utilisateur voit
       // l'historique, et l'anomalie reste visible.
-      expect(() => Virement.fromJson(_virementJson(montant: 'inconnu')),
-          returnsNormally);
+      expect(
+        () => Virement.fromJson(_virementJson(montant: 'inconnu')),
+        returnsNormally,
+      );
       expect(Virement.fromJson(_virementJson(montant: 'inconnu')).montant, 0.0);
     });
 
     test('ne lève pas d\'exception sur un montant absent', () {
-      expect(() => Virement.fromJson(_virementJson(montant: null)),
-          returnsNormally);
+      expect(
+        () => Virement.fromJson(_virementJson(montant: null)),
+        returnsNormally,
+      );
     });
   });
 

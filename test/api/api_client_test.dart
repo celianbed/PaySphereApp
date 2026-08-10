@@ -16,7 +16,8 @@ void main() {
       expect(
         ApiClient.delaiReveil,
         greaterThan(reveilObserve),
-        reason: 'Un délai inférieur au temps de réveil de l\'hébergeur rend la '
+        reason:
+            'Un délai inférieur au temps de réveil de l\'hébergeur rend la '
             'première connexion systématiquement impossible.',
       );
     });
@@ -33,7 +34,10 @@ void main() {
       // Sur une instance chaude, une requête aboutit en moins d'une seconde :
       // conserver 90 s ferait patienter inutilement en cas de coupure réseau.
       expect(ApiClient.delaiStandard, lessThan(const Duration(seconds: 30)));
-      expect(ApiClient.delaiStandard, greaterThanOrEqualTo(const Duration(seconds: 10)));
+      expect(
+        ApiClient.delaiStandard,
+        greaterThanOrEqualTo(const Duration(seconds: 10)),
+      );
     });
 
     test('le délai de réveil est plus large que le délai standard', () {

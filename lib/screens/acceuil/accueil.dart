@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart'; // Pour la navigation avec GoRouter
 import 'package:intl/intl.dart'; // Pour le formatage des dates
 import 'package:pay_sphere_app/api/notification_api.dart'; // API perso pour gérer les notifications
 import '../../models/client_model.dart'; // Modèle client
-import '../../services/storage.dart'; // Pour la gestion du stockage local
 import '../autres/custom_app_bar.dart'; // AppBar personnalisée
 import '../autres/navigation_wrapper.dart'; // Wrapper pour navigation + bottom bar
 

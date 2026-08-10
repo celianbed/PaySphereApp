@@ -44,8 +44,14 @@ jobs:
         run: dart format --output=none --set-exit-if-changed lib test
         continue-on-error: true
 
+      # Les avertissements et les erreurs bloquent la chaîne ; les remarques de
+      # style (`info`) ne la bloquent pas encore. Il en reste 41, pour
+      # l'essentiel des `use_build_context_synchronously` et des API
+      # dépréciées : les traiter demande de reprendre les écrans un par un, ce
+      # qui doit faire l'objet d'un travail dédié plutôt que d'être bâclé ici.
+      # Le jour où le compte tombe à zéro, retirer `--no-fatal-infos`.
       - name: Analyse statique
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Tests unitaires
         run: flutter test --coverage

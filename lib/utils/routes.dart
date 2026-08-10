@@ -78,7 +78,7 @@ class Routes {
 
             return CustomTransitionPage(
               key: state.pageKey,
-              child: LoginPage(client: client),
+              child: LoginPage(clientInitial: client),
               transitionDuration: const Duration(milliseconds: 300),
               transitionsBuilder: (
                 context,
