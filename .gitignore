@@ -46,3 +46,10 @@ app.*.map.json
 
 # Environment variables
 .env
+
+# Signature Android — ne jamais versionner le magasin de clés ni ses mots de
+# passe. Une clé de signature divulguée permet de publier une mise à jour
+# malveillante sous l'identité de l'application.
+android/key.properties
+*.jks
+*.keystore

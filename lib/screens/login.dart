@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_sphere_app/api/api_client.dart';
 import 'package:pay_sphere_app/providers/client_provider.dart';
 import 'package:pay_sphere_app/providers/auth_providers.dart';
 import '../main.dart';
@@ -30,11 +31,31 @@ class Login extends State<LoginPage> {
 
   String? errorMessage;
 
+  /// Message affiché lorsque l'instance d'hébergement doit être réveillée.
+  /// Sans ce retour visuel, l'utilisateur fait face à un écran figé pendant
+  /// une minute et conclut que l'application est plantée.
+  String? messageReveil;
 
   @override
   void initState() {
     super.initState();
+    ApiClient.onReveilServeur = () {
+      if (mounted) {
+        setState(() {
+          messageReveil =
+              "Réveil du serveur en cours, cela peut prendre jusqu'à une minute...";
+        });
+      }
+    };
     _loadClientSavedInfos();
+  }
+
+  @override
+  void dispose() {
+    ApiClient.onReveilServeur = null;
+    clientNumberController.dispose();
+    codeController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadClientSavedInfos() async {
@@ -232,14 +253,26 @@ class Login extends State<LoginPage> {
                         }
 
                         try {
-                          final auth = AuthProvider();
+                          // L'instance gratuite s'arrête après quinze minutes
+                          // sans trafic ; on la réveille avant d'envoyer les
+                          // identifiants, en informant l'utilisateur plutôt
+                          // qu'en échouant sur un délai trop court.
+                          final serveurPret = await ApiClient.reveillerServeur();
+                          if (!serveurPret) {
+                            showErrorDialog(
+                              "Serveur injoignable",
+                              "Le serveur n'a pas répondu. Vérifiez votre connexion "
+                              "puis réessayez dans quelques instants.",
+                            );
+                            setState(() {
+                              isLoading = false;
+                              messageReveil = null;
+                            });
+                            return;
+                          }
 
-                          final isLoggedIn = await auth.login(numClient, code).timeout(
-                            const Duration(seconds: 10),
-                            onTimeout: () {
-                              throw TimeoutException("Le serveur ne répond pas.");
-                            },
-                          );
+                          final auth = AuthProvider();
+                          final isLoggedIn = await auth.login(numClient, code);
 
                           if (!isLoggedIn) {
                             showErrorDialog("Erreur de connexion", "Identifiants incorrects ou erreur serveur. Vérifiez votre numéro client et votre code secret.");
@@ -269,11 +302,17 @@ class Login extends State<LoginPage> {
                         } on SocketException {
                           showErrorDialog("Connexion impossible", "Vérifiez votre connexion réseau ou que le serveur est bien lancé.");
                         } on TimeoutException {
-                          showErrorDialog("Serveur injoignable", "Le serveur met trop de temps à répondre.");
+                          showErrorDialog("Serveur injoignable",
+                              "Le serveur met trop de temps à répondre. Réessayez dans quelques instants.");
                         } catch (e) {
                           showErrorDialog("Erreur inattendue", "Une erreur est survenue : $e");
                         } finally {
-                          setState(() => isLoading = false);
+                          if (mounted) {
+                            setState(() {
+                              isLoading = false;
+                              messageReveil = null;
+                            });
+                          }
                         }
                       },
 
@@ -282,6 +321,31 @@ class Login extends State<LoginPage> {
                           : const Text('Continuer',
                           style: TextStyle(fontSize: 18, color: Colors.white)),
                     ),
+                    if (messageReveil != null) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              messageReveil!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

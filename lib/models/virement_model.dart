@@ -18,12 +18,26 @@ class Virement{
     required this.typeVirementNom,
   });
 
+  /// Convertit un montant reçu de l'API en `double`.
+  ///
+  /// Le montant est sérialisé en chaîne par SQLAlchemy (`Numeric`), mais rien
+  /// ne garantit ce format : un changement de type de colonne le ferait
+  /// arriver sous forme de nombre. L'ancienne implémentation
+  /// (`num.tryParse(json["montant"])!`) levait alors une exception de type,
+  /// et une exception d'assertion sur une chaîne non numérique. Les deux cas
+  /// se manifestaient par un écran blanc, sans message exploitable.
+  static double _versDouble(dynamic valeur) {
+    if (valeur is num) return valeur.toDouble();
+    if (valeur is String) return double.tryParse(valeur) ?? 0.0;
+    return 0.0;
+  }
+
   factory Virement.fromJson(Map<String, dynamic> json) {
     return Virement(
       id: json["id"],
       compteSourceNom: json["compte_source_nom"],
       compteDestinataireNom: json["compte_destination_nom"],
-      montant: (num.tryParse(json["montant"]))!.toDouble(),
+      montant: _versDouble(json["montant"]),
       date: json["date_virement"],
       statutNom: json["statut_nom"],
       typeVirementNom: json["type_virement_nom"],

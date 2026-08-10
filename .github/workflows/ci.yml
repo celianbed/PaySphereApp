@@ -1,0 +1,144 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.41.8'
+
+jobs:
+  qualite:
+    name: Analyse statique et tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # `.env` est déclaré comme asset dans pubspec.yaml mais n'est pas
+      # versionné : sans cette étape, `flutter test` et `flutter build`
+      # échouent sur un asset manquant.
+      - name: Génération du fichier .env
+        run: |
+          cat > .env <<EOF
+          API_KEY=${{ secrets.API_KEY }}
+          API_BASE_URL=${{ secrets.API_BASE_URL }}
+          EOF
+
+      - name: Récupération des dépendances
+        run: flutter pub get
+
+      - name: Vérification du formatage
+        run: dart format --output=none --set-exit-if-changed lib test
+        continue-on-error: true
+
+      - name: Analyse statique
+        run: flutter analyze
+
+      - name: Tests unitaires
+        run: flutter test --coverage
+
+      - name: Publication du rapport de couverture
+        uses: actions/upload-artifact@v4
+        with:
+          name: couverture
+          path: coverage/lcov.info
+
+  compilation:
+    name: Compilation Android
+    needs: qualite
+    runs-on: ubuntu-latest
+    # Le contexte `secrets` n'est pas exploitable directement dans une
+    # condition `if` : on le recopie dans l'environnement du job pour pouvoir
+    # tester sa présence.
+    env:
+      MAGASIN_DE_CLES: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Génération du fichier .env
+        run: |
+          cat > .env <<EOF
+          API_KEY=${{ secrets.API_KEY }}
+          API_BASE_URL=${{ secrets.API_BASE_URL }}
+          EOF
+
+      # Le magasin de clés est stocké en secret, encodé en base64 :
+      #   base64 -i paysphere-release.jks | pbcopy
+      # puis collé dans le secret ANDROID_KEYSTORE_BASE64.
+      # Sans ces secrets, la compilation reste possible mais non signée.
+      - name: Restauration du magasin de clés
+        if: env.MAGASIN_DE_CLES != ''
+        run: |
+          echo "$MAGASIN_DE_CLES" | base64 --decode > android/app/release.jks
+          cat > android/key.properties <<EOF
+          storeFile=release.jks
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Récupération des dépendances
+        run: flutter pub get
+
+      - name: Compilation de l'APK
+        run: flutter build apk --release
+
+      - name: Compilation du bundle Play Store
+        run: flutter build appbundle --release
+
+      # L'artefact est téléchargeable depuis l'exécution du workflow : c'est le
+      # canal de distribution minimal, sans dépendance externe.
+      - name: Publication des binaires
+        uses: actions/upload-artifact@v4
+        with:
+          name: paysphere-android
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+  publication:
+    name: Publication d'une version
+    needs: compilation
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: paysphere-android
+
+      # Une version taguée produit une page de téléchargement stable, à
+      # communiquer aux testeurs comme au jury.
+      - name: Création de la version GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            app-release.apk
+            app-release.aab
+          generate_release_notes: true

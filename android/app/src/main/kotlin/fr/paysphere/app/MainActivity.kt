@@ -1,4 +1,4 @@
-package com.example.pay_sphere_app
+package fr.paysphere.app
 
 import io.flutter.embedding.android.FlutterActivity
 

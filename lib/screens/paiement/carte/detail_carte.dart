@@ -233,7 +233,9 @@ class CarteDetailPage extends StatelessWidget {
                       const SizedBox(height: 16),
                       Center(
                         child: Text(
-                          '123', // 👉 Remplace par carte.codeSecurite
+                          // Le cryptogramme n'est pas restitué par l'API et
+                          // n'a pas à être stocké côté client (PCI-DSS).
+                          '•••',
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,

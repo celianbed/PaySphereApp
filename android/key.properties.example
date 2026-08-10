@@ -1,0 +1,15 @@
+# Copier vers android/key.properties (non versionné) pour pouvoir produire une
+# compilation `release` signée.
+#
+# Générer le magasin de clés une seule fois, et le conserver précieusement :
+# le Play Store refuse toute mise à jour signée avec une clé différente.
+#
+#   keytool -genkey -v -keystore ~/paysphere-release.jks \
+#           -keyalg RSA -keysize 2048 -validity 10000 -alias paysphere
+#
+# Ne jamais versionner ni le .jks ni le key.properties renseigné.
+
+storeFile=/chemin/absolu/vers/paysphere-release.jks
+storePassword=mot-de-passe-du-magasin
+keyAlias=paysphere
+keyPassword=mot-de-passe-de-la-cle

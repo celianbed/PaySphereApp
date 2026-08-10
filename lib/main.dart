@@ -16,7 +16,21 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+
+  // `.env` n'est pas versionné : il est généré à partir de .env.example en
+  // développement, et depuis les secrets du dépôt en intégration continue.
+  // Son absence ne doit pas empêcher l'application de démarrer — l'API reste
+  // joignable, seule la clé X-API-Key manque —, mais elle doit être signalée
+  // dans les journaux plutôt que de provoquer une exception au lancement.
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint(
+      "Fichier .env introuvable ou illisible ($e). "
+      "Copier .env.example vers .env avant de compiler.",
+    );
+  }
+
   await initializeDateFormatting('fr_FR');
 
   ApiClient.onSessionExpired = (message) {

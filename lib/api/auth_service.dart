@@ -9,7 +9,7 @@ class AuthApi {
     final data = await ApiClient.post('/login', {
       "num": numClient,
       "password": password,
-    }).timeout(const Duration(seconds: 10));
+    });
 
     if (data == null) {
       debugPrint("AuthApi.login: API returned null");
@@ -58,7 +58,7 @@ class AuthApi {
     final data = await ApiClient.post('/verifier_code', {
       "num": numClient,
       "password": password,
-    }, token: token).timeout(const Duration(seconds: 10));
+    }, token: token);
 
     if (data != null && data.containsKey('success')) {
       return data['success'] == true;

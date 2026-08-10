@@ -5,8 +5,23 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// Paramètres du magasin de clés de signature.
+//
+// android/key.properties n'est pas versionné : il est créé localement à partir
+// de key.properties.example, et régénéré par l'intégration continue à partir
+// des secrets du dépôt. Sans lui, seules les compilations de débogage sont
+// possibles ; une compilation `release` échoue explicitement plutôt que de
+// produire un binaire signé avec la clé de débogage, qu'aucun magasin
+// d'applications n'accepte.
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreConfigured = keystorePropertiesFile.exists()
+if (keystoreConfigured) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "com.example.pay_sphere_app"
+    namespace = "fr.paysphere.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,21 +35,37 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.pay_sphere_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // Identifiant définitif de l'application, distinct du `com.example`
+        // du gabarit Flutter : un identifiant `com.example.*` est refusé au
+        // dépôt sur le Play Store.
+        applicationId = "fr.paysphere.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (keystoreConfigured) {
+            release {
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+                storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword = keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = keystoreConfigured ? signingConfigs.release : null
+
+            // R8 volontairement désactivé : le code Dart est déjà compilé en
+            // AOT, le gain porterait seulement sur la couche Java/Kotlin, et
+            // l'activer sans campagne de test sur appareil expose à des
+            // régressions par réflexion dans les greffons. À réévaluer une
+            // fois les tests d'intégration en place.
+            minifyEnabled = false
         }
     }
 }

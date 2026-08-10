@@ -1,10 +1,13 @@
 import 'package:pay_sphere_app/models/type_carte.dart';
 
+/// Une carte bancaire telle que restituée par l'API.
+///
+/// Le cryptogramme visuel n'est volontairement pas modélisé : l'API ne le
+/// renvoie plus, sa conservation étant proscrite par la norme PCI-DSS.
 class Carte {
   final int id;
   final String numeroCarte;
   final String dateExpiration;
-  final String codeSecurite;
   final TypeCarte typeCarte;
   final int numeroCompte;
   bool active;
@@ -17,7 +20,6 @@ class Carte {
     required this.id,
     required this.numeroCarte,
     required this.dateExpiration,
-    required this.codeSecurite,
     required this.typeCarte,
     required this.numeroCompte,
     required this.active,
@@ -31,7 +33,6 @@ class Carte {
       id: json['id'],
       numeroCarte: json['numero_carte'],
       dateExpiration: json['date_expiration'],
-      codeSecurite: json['code_securite'],
       typeCarte: TypeCarte.fromJson(json['type_carte']),
       numeroCompte: json['numero_compte'],
       active: json['active'],
@@ -47,7 +48,6 @@ class Carte {
       'id': id,
       'numero_carte': numeroCarte,
       'date_expiration': dateExpiration,
-      'code_securite': codeSecurite,
       'type_carte': typeCarte.toJson(),
       'numero_compte': numeroCompte,
       'active': active,
