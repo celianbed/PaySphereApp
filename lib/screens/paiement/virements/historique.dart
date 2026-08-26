@@ -14,7 +14,9 @@ class HistoriqueVirementsPage extends StatelessWidget {
 
   List<Virement> _getAllVirements() {
     final virements = <Virement>[];
-    for (final compte in client!.comptes) {
+    // `client` est déclaré nullable : le déréférencer avec `!` faisait planter
+    // l'écran lorsque la fiche client n'avait pas pu être chargée.
+    for (final compte in client?.comptes ?? const []) {
       virements.addAll(compte.virementEnvoye);
       virements.addAll(compte.virementRecu);
     }
@@ -48,7 +50,11 @@ class HistoriqueVirementsPage extends StatelessWidget {
           itemCount: virements.length,
           itemBuilder: (context, index) {
             final virement = virements[index];
-            final isEnvoye = virement.compteSourceNom.contains(client?.nom as Pattern);
+            // `client?.nom as Pattern` levait une exception de conversion dès
+            // que le client était absent : `null` n'est pas un `Pattern`.
+            final nomClient = client?.nom;
+            final isEnvoye = nomClient != null &&
+                virement.compteSourceNom.contains(nomClient);
             final color = isEnvoye ? Colors.blue.shade50 : Colors.green.shade50;
             final icon = isEnvoye ? Icons.arrow_upward : Icons.arrow_downward;
             final label = isEnvoye ? "Envoyé à" : "Reçu de";

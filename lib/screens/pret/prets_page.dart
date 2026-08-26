@@ -27,9 +27,19 @@ class _PretsPageState extends State<PretsPage> {
 
   Future<void> _chargerPrets() async {
     final token = await StorageService.getAccessToken();
-    if (token == null) return;
+    if (!mounted) return;
+
+    if (token == null) {
+      // Sans jeton il n'y a rien à charger : on masque l'indicateur plutôt
+      // que de le laisser tourner indéfiniment.
+      setState(() => isLoading = false);
+      return;
+    }
 
     final data = await PretApi.getPrets(token);
+    // La page a pu être quittée pendant l'appel réseau ; un `setState` après
+    // `dispose` lève une exception.
+    if (!mounted) return;
     setState(() {
       prets = data.map((json) => Pret.fromJson(json)).toList();
       isLoading = false;

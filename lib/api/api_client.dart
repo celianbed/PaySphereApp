@@ -237,6 +237,17 @@ class ApiClient {
     );
   }
 
+  /// Indique si une réponse décrit une erreur plutôt que des données.
+  ///
+  /// `_handleResponse` renvoie, pour tout code non 2xx, un descripteur
+  /// `{'error': true, 'status': ..., 'message': ...}`. Ce descripteur n'est pas
+  /// nul : un appelant qui se contente de tester `!= null` le prend pour des
+  /// données et le passe à un `fromJson`, qui échoue sur des champs absents.
+  /// Toute réponse doit donc passer par ce test avant d'être désérialisée.
+  static bool estErreur(Map<String, dynamic>? reponse) {
+    return reponse == null || reponse['error'] == true;
+  }
+
   static Map<String, dynamic>? _handleResponse(http.Response response) {
     final statusCode = response.statusCode;
     final responseBody = utf8.decode(response.bodyBytes);

@@ -66,6 +66,12 @@ android {
             // régressions par réflexion dans les greffons. À réévaluer une
             // fois les tests d'intégration en place.
             minifyEnabled = false
+
+            // `shrinkResources` doit suivre `minifyEnabled` : le greffon
+            // Flutter l'active par défaut en `release`, et Gradle refuse de
+            // supprimer les ressources inutilisées sans rétrécissement du
+            // code. Laisser les deux désactivés fait échouer la compilation.
+            shrinkResources = false
         }
     }
 }

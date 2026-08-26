@@ -88,12 +88,27 @@ class Login extends State<LoginPage> {
         }
       });
     }
-    Future<void> fetchClient(String numClient, String token) async {
+    /// Charge la fiche client après authentification.
+    ///
+    /// Retourne `false` si le chargement a échoué : poursuivre vers l'accueil
+    /// avec un client absent y provoquerait un écran vide sans explication.
+    Future<bool> fetchClient(String numClient, String token) async {
       final clientProvider = ClientProvider();
-      await clientProvider.loadClient(int.tryParse(numClient), token);
+      final charge =
+          await clientProvider.loadClient(int.tryParse(numClient), token);
+
+      if (!charge) {
+        if (mounted) {
+          showErrorDialog("Chargement impossible",
+              clientProvider.erreur ?? "Impossible de charger votre profil.");
+        }
+        return false;
+      }
+
       setState(() {
         client = clientProvider.client;
       });
+      return true;
     }
 
     void showErrorDialog(String title, String message) {
@@ -298,7 +313,10 @@ class Login extends State<LoginPage> {
                             return;
                           }
 
-                          await fetchClient(numClient, token);
+                          if (!await fetchClient(numClient, token)) {
+                            setState(() => isLoading = false);
+                            return;
+                          }
                           await saveClient();
 
                           if (context.mounted) {

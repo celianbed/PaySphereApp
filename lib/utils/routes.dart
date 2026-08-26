@@ -17,6 +17,7 @@ import 'package:pay_sphere_app/screens/profil/gererProfil/changer_telephone.dart
 import 'package:pay_sphere_app/screens/profil/profil.dart';
 
 import '../main.dart';
+import 'extras.dart';
 import '../models/carte_model.dart';
 import '../models/client_model.dart';
 import '../screens/autres/confirmation_code_page.dart';
@@ -36,7 +37,9 @@ import '../screens/pret/prets_page.dart';
 import '../screens/pret/simulation_pret_page.dart';
 
 class Routes {
-  static GoRouter routerConfiguration({GlobalKey<NavigatorState>? navigatorKey}) {
+  static GoRouter routerConfiguration({
+    GlobalKey<NavigatorState>? navigatorKey,
+  }) {
     return GoRouter(
       navigatorKey: navigatorKey,
       routes: <RouteBase>[
@@ -46,7 +49,10 @@ class Routes {
             Client? client = state.extra as Client?;
             return CustomTransitionPage(
               key: state.pageKey,
-              child: DemarragePage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => DemarragePage(client: client),
+              ),
               transitionDuration: const Duration(milliseconds: 300),
               transitionsBuilder: (
                 context,
@@ -104,11 +110,13 @@ class Routes {
         GoRoute(
           path: '/accueil',
           pageBuilder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
             return NoTransitionPage(
               key: state.pageKey,
-              child: AccueilPage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => AccueilPage(client: client),
+              ),
             );
           },
         ),
@@ -144,68 +152,111 @@ class Routes {
         GoRoute(
           path: '/paiements',
           pageBuilder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
             return NoTransitionPage(
               key: state.pageKey,
-              child: PaiementsPage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => PaiementsPage(client: client),
+              ),
             );
           },
         ),
         GoRoute(
           path: '/paiements/cartes',
           pageBuilder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
 
             return NoTransitionPage(
               key: state.pageKey,
-              child: CartesPage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => CartesPage(client: client),
+              ),
             );
           },
         ),
         GoRoute(
           path: '/paiements/cartes/details-carte',
+          // Une carte ne peut pas être restaurée depuis l'URL : après un
+          // rechargement, on renvoie vers la liste des cartes.
+          redirect:
+              (context, state) =>
+                  lireExtras(state)['carte'] is Carte
+                      ? null
+                      : '/paiements/cartes',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
+            final extras = lireExtras(state);
             final carte = extras['carte'] as Carte;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
             return CarteDetailPage(carte: carte, client: client);
           },
         ),
         GoRoute(
           path: '/paiements/cartes/details-carte/opposition',
+          // Une carte ne peut pas être restaurée depuis l'URL : après un
+          // rechargement, on renvoie vers la liste des cartes.
+          redirect:
+              (context, state) =>
+                  lireExtras(state)['carte'] is Carte
+                      ? null
+                      : '/paiements/cartes',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
+            final extras = lireExtras(state);
             final carte = extras['carte'] as Carte;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
 
-            return OppositionPage(carte: carte, client: client);
+            return ClientRestaure(
+              client: client,
+              construire:
+                  (client) => OppositionPage(carte: carte, client: client),
+            );
           },
         ),
         GoRoute(
           path: '/paiements/cartes/details-carte/plafonds',
+          // Une carte ne peut pas être restaurée depuis l'URL : après un
+          // rechargement, on renvoie vers la liste des cartes.
+          redirect:
+              (context, state) =>
+                  lireExtras(state)['carte'] is Carte
+                      ? null
+                      : '/paiements/cartes',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
+            final extras = lireExtras(state);
             final carte = extras['carte'] as Carte;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
 
             return CartePlafondPage(carte: carte, client: client);
           },
         ),
         GoRoute(
           path: '/paiements/cartes/details-carte/plafonds/modifier-plafond',
+          // Une carte ne peut pas être restaurée depuis l'URL : après un
+          // rechargement, on renvoie vers la liste des cartes.
+          redirect:
+              (context, state) =>
+                  lireExtras(state)['carte'] is Carte
+                      ? null
+                      : '/paiements/cartes',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
+            final extras = lireExtras(state);
             final carte = extras['carte'] as Carte;
-            final client = extras['client'] as Client?;
+            final client = lireClient(state);
             return ModifierPlafondPage(carte: carte, client: client);
           },
         ),
         GoRoute(
           path: '/paiements/cartes/details-carte/modifier-paimement-en-ligne',
+          // Une carte ne peut pas être restaurée depuis l'URL : après un
+          // rechargement, on renvoie vers la liste des cartes.
+          redirect:
+              (context, state) =>
+                  lireExtras(state)['carte'] is Carte
+                      ? null
+                      : '/paiements/cartes',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
+            final extras = lireExtras(state);
 
             final carte = extras['carte'] as Carte;
             return PaiementEnLignePage(carte: carte);
@@ -214,16 +265,28 @@ class Routes {
         GoRoute(
           path:
               '/paiements/cartes/details-carte/modifier-paimement-sans-contact',
+          // Une carte ne peut pas être restaurée depuis l'URL : après un
+          // rechargement, on renvoie vers la liste des cartes.
+          redirect:
+              (context, state) =>
+                  lireExtras(state)['carte'] is Carte
+                      ? null
+                      : '/paiements/cartes',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
+            final extras = lireExtras(state);
             final carte = extras['carte'] as Carte;
             return PaiementSansContactPage(carte: carte);
           },
         ),
         GoRoute(
           path: '/verifier_code',
+          // Cet écran s'appuie sur des fonctions de rappel, qui ne
+          // survivent pas à un rechargement.
+          redirect:
+              (context, state) =>
+                  state.extra is Map<String, dynamic> ? null : '/accueil',
           builder: (context, state) {
-            final extra = state.extra as Map<String, dynamic>;
+            final extra = lireExtras(state);
             return CodeVerificationPage(
               client: extra['client'],
               titre: extra['titre'],
@@ -234,8 +297,13 @@ class Routes {
         ),
         GoRoute(
           path: '/confirmation',
+          // Cet écran s'appuie sur des fonctions de rappel, qui ne
+          // survivent pas à un rechargement.
+          redirect:
+              (context, state) =>
+                  state.extra is Map<String, dynamic> ? null : '/accueil',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
+            final extras = lireExtras(state);
             return ConfirmationPage(
               titre: extras['titre'],
               client: extras["client"],
@@ -248,8 +316,11 @@ class Routes {
         GoRoute(
           path: '/rib',
           builder: (context, state) {
-            final client = state.extra as Client?;
-            return RIBPage(client: client);
+            final client = lireClient(state);
+            return ClientRestaure(
+              client: client,
+              construire: (client) => RIBPage(client: client),
+            );
           },
         ),
         GoRoute(
@@ -261,57 +332,66 @@ class Routes {
         GoRoute(
           path: '/contact',
           pageBuilder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
+            final client = lireClient(state);
 
             return NoTransitionPage(
               key: state.pageKey,
-              child: ContactPage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => ContactPage(client: client),
+              ),
             );
           },
         ),
         GoRoute(
           path: '/virements',
           pageBuilder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
+            final client = lireClient(state);
 
             return NoTransitionPage(
               key: state.pageKey,
-              child: VirementsPage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => VirementsPage(client: client),
+              ),
             );
           },
         ),
         GoRoute(
           path: '/virements/nouveau-virement',
           pageBuilder: (context, state) {
-
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
+            final client = lireClient(state);
             return NoTransitionPage(
               key: state.pageKey,
-              child: NouveauVirementPage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => NouveauVirementPage(client: client),
+              ),
             );
           },
         ),
         GoRoute(
           path: "/virements/beneficiaires",
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
+            final client = lireClient(state);
 
-            return AjouterBeneficiairePage(client:client);
+            return ClientRestaure(
+              client: client,
+              construire: (client) => AjouterBeneficiairePage(client: client),
+            );
           },
         ),
         GoRoute(
           path: '/profil',
           pageBuilder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
+            final client = lireClient(state);
 
             return NoTransitionPage(
               key: state.pageKey,
-              child: ProfilPage(client: client),
+              child: ClientRestaure(
+                client: client,
+                construire: (client) => ProfilPage(client: client),
+              ),
             );
           },
         ),
@@ -327,67 +407,86 @@ class Routes {
         GoRoute(
           path: "/virements/historique",
           builder: (context, state) {
+            final client = lireClient(state);
 
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
-
-            return HistoriqueVirementsPage(client: client);
+            return ClientRestaure(
+              client: client,
+              construire: (client) => HistoriqueVirementsPage(client: client),
+            );
           },
         ),
         GoRoute(
           path: "/detailsCompte",
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
+            final client = lireClient(state);
 
-            return TransactionsCartePage(client: client);
+            return ClientRestaure(
+              client: client,
+              construire: (client) => TransactionsCartePage(client: client),
+            );
           },
         ),
         GoRoute(
           path: "/modifier-email",
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
 
-            return ChangerEmailPage(client: client, emailActuel:client.email ,);
+            return ClientRestaure(
+              client: client,
+              construire:
+                  (client) => ChangerEmailPage(
+                    client: client,
+                    emailActuel: client.email,
+                  ),
+            );
           },
         ),
         GoRoute(
           path: "/modifier-tel",
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
 
-            return ChangerTelephonePage(client: client, numeroActuel:client.numeroDeTelephone);
+            return ClientRestaure(
+              client: client,
+              construire:
+                  (client) => ChangerTelephonePage(
+                    client: client,
+                    numeroActuel: client.numeroDeTelephone,
+                  ),
+            );
           },
         ),
         GoRoute(
           path: '/prets',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
-            return PretsPage(client: client);
+            final client = lireClient(state);
+            return ClientRestaure(
+              client: client,
+              construire: (client) => PretsPage(client: client),
+            );
           },
         ),
         GoRoute(
           path: '/prets/simulation',
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client?;
-            return SimulationPretPage(client: client);
+            final client = lireClient(state);
+            return ClientRestaure(
+              client: client,
+              construire: (client) => SimulationPretPage(client: client),
+            );
           },
         ),
         GoRoute(
           path: "/modifier-mdp",
           builder: (context, state) {
-            final extras = state.extra as Map<String, dynamic>;
-            final client = extras['client'] as Client;
+            final client = lireClient(state);
 
-            return ChangerMotDePassePage(client: client);
+            return ClientRestaure(
+              client: client,
+              construire: (client) => ChangerMotDePassePage(client: client),
+            );
           },
         ),
-
-
       ],
     );
   }

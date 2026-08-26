@@ -49,6 +49,7 @@ class _ProfilPageState extends State<ProfilPage> {
     if (await file.exists()) {
       _imageFile = file;
     }
+    if (!mounted) return;
     setState(() {
       _isLoadingImage = false;
     });
