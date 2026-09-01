@@ -64,6 +64,13 @@ class _ClientRestaureState extends State<ClientRestaure> {
 
   @override
   Widget build(BuildContext context) {
+    // Le client transmis par la navigation est disponible immédiatement : il
+    // faut construire la page dans la même frame. `FutureBuilder` démarre
+    // toujours en `waiting`, même sur un futur déjà résolu, et ferait donc
+    // clignoter un indicateur de chargement à chaque changement de page.
+    final dejaLa = widget.client;
+    if (dejaLa != null) return widget.construire(dejaLa);
+
     return FutureBuilder<Client?>(
       future: _client,
       builder: (context, snapshot) {

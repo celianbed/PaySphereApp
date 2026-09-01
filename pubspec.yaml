@@ -24,7 +24,6 @@ dependencies:
   permission_handler: ^12.0.0+1
   image_picker: ^1.1.2
   image_cropper: ^9.1.0
-  flutter_launcher_icons: ^0.14.3
   provider: ^6.1.5
   flutter_dotenv: ^5.2.1
 
@@ -32,6 +31,7 @@ dependencies:
 
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.3
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
@@ -65,18 +65,14 @@ flutter:
     - lib/assets/avatar/62.jpg
 
 
-flutter_icons:
-  android: true
+# Génération des icônes : dart run flutter_launcher_icons
+# La source fait 1024x1024, taille exigée par l'App Store ; les déclinaisons
+# iOS et Android en sont dérivées automatiquement.
+flutter_launcher_icons:
   image_path: "lib/assets/icon/icone.png"
-  adaptive_icon_background: "#0086db"
-  adaptive_icon_foreground: "lib/assets/icon/icone.png"
-
-
-
-
-
-
-
-
-
-
+  ios: true
+  # iOS refuse toute couche alpha dans l'icône de l'App Store.
+  remove_alpha_ios: true
+  android: true
+  adaptive_icon_background: "#0D47A1"
+  adaptive_icon_foreground: "lib/assets/icon/icone_avant_plan.png"

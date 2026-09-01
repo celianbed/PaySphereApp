@@ -18,6 +18,7 @@ import 'package:pay_sphere_app/screens/profil/profil.dart';
 
 import '../main.dart';
 import 'extras.dart';
+import 'transitions.dart';
 import '../models/carte_model.dart';
 import '../models/client_model.dart';
 import '../screens/autres/confirmation_code_page.dart';
@@ -47,31 +48,9 @@ class Routes {
           path: '/demarrage',
           pageBuilder: (context, state) {
             Client? client = state.extra as Client?;
-            return CustomTransitionPage(
+            return pageGlissee(
               key: state.pageKey,
-              child: ClientRestaure(
-                client: client,
-                construire: (client) => DemarragePage(client: client),
-              ),
-              transitionDuration: const Duration(milliseconds: 300),
-              transitionsBuilder: (
-                context,
-                animation,
-                secondaryAnimation,
-                child,
-              ) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-
-                final tween = Tween(
-                  begin: begin,
-                  end: end,
-                ).chain(CurveTween(curve: curve));
-                final offsetAnimation = animation.drive(tween);
-
-                return SlideTransition(position: offsetAnimation, child: child);
-              },
+              child: DemarragePage(client: client),
             );
           },
         ),
@@ -82,28 +61,9 @@ class Routes {
           pageBuilder: (context, state) {
             Client? client = state.extra as Client?;
 
-            return CustomTransitionPage(
+            return pageGlissee(
               key: state.pageKey,
               child: LoginPage(clientInitial: client),
-              transitionDuration: const Duration(milliseconds: 300),
-              transitionsBuilder: (
-                context,
-                animation,
-                secondaryAnimation,
-                child,
-              ) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-
-                final tween = Tween(
-                  begin: begin,
-                  end: end,
-                ).chain(CurveTween(curve: curve));
-                final offsetAnimation = animation.drive(tween);
-
-                return SlideTransition(position: offsetAnimation, child: child);
-              },
             );
           },
         ),
@@ -111,7 +71,7 @@ class Routes {
           path: '/accueil',
           pageBuilder: (context, state) {
             final client = lireClient(state);
-            return NoTransitionPage(
+            return pageFondu(
               key: state.pageKey,
               child: ClientRestaure(
                 client: client,
@@ -124,36 +84,14 @@ class Routes {
         GoRoute(
           path: "/register",
           pageBuilder: (context, state) {
-            return CustomTransitionPage(
-              key: state.pageKey,
-              child: RegisterPage(),
-              transitionDuration: const Duration(milliseconds: 300),
-              transitionsBuilder: (
-                context,
-                animation,
-                secondaryAnimation,
-                child,
-              ) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-
-                final tween = Tween(
-                  begin: begin,
-                  end: end,
-                ).chain(CurveTween(curve: curve));
-                final offsetAnimation = animation.drive(tween);
-
-                return SlideTransition(position: offsetAnimation, child: child);
-              },
-            );
+            return pageGlissee(key: state.pageKey, child: RegisterPage());
           },
         ),
         GoRoute(
           path: '/paiements',
           pageBuilder: (context, state) {
             final client = lireClient(state);
-            return NoTransitionPage(
+            return pageFondu(
               key: state.pageKey,
               child: ClientRestaure(
                 client: client,
@@ -167,7 +105,7 @@ class Routes {
           pageBuilder: (context, state) {
             final client = lireClient(state);
 
-            return NoTransitionPage(
+            return pageGlissee(
               key: state.pageKey,
               child: ClientRestaure(
                 client: client,
@@ -334,7 +272,7 @@ class Routes {
           pageBuilder: (context, state) {
             final client = lireClient(state);
 
-            return NoTransitionPage(
+            return pageFondu(
               key: state.pageKey,
               child: ClientRestaure(
                 client: client,
@@ -348,7 +286,7 @@ class Routes {
           pageBuilder: (context, state) {
             final client = lireClient(state);
 
-            return NoTransitionPage(
+            return pageGlissee(
               key: state.pageKey,
               child: ClientRestaure(
                 client: client,
@@ -361,7 +299,7 @@ class Routes {
           path: '/virements/nouveau-virement',
           pageBuilder: (context, state) {
             final client = lireClient(state);
-            return NoTransitionPage(
+            return pageGlissee(
               key: state.pageKey,
               child: ClientRestaure(
                 client: client,
@@ -386,7 +324,7 @@ class Routes {
           pageBuilder: (context, state) {
             final client = lireClient(state);
 
-            return NoTransitionPage(
+            return pageFondu(
               key: state.pageKey,
               child: ClientRestaure(
                 client: client,
@@ -398,10 +336,7 @@ class Routes {
         GoRoute(
           path: '/notifications',
           pageBuilder: (context, state) {
-            return NoTransitionPage(
-              key: state.pageKey,
-              child: NotificationsPage(),
-            );
+            return pageGlissee(key: state.pageKey, child: NotificationsPage());
           },
         ),
         GoRoute(

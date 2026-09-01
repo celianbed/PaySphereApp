@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_sphere_app/screens/autres/register.dart';
+import 'package:pay_sphere_app/screens/demarrage.dart';
+import 'package:pay_sphere_app/screens/login.dart';
 import 'package:pay_sphere_app/utils/routes.dart';
 
 /// Un rechargement de page — redémarrage à chaud, retour depuis
@@ -64,4 +67,32 @@ void main() {
       );
     });
   }
+
+  // Les écrans d'avant connexion se construisent sans client. Vérifier
+  // seulement qu'ils ne lèvent pas d'exception ne suffit pas : une
+  // redirection vers /login ne lève rien et vide l'écran de son contenu.
+  final ecransPublics = <String, Type>{
+    '/demarrage': DemarragePage,
+    '/login': LoginPage,
+    '/register': RegisterPage,
+  };
+
+  ecransPublics.forEach((chemin, ecran) {
+    testWidgets('$chemin affiche $ecran sans client', (tester) async {
+      final router = GoRouter(
+        initialLocation: chemin,
+        routes: Routes.routerConfiguration().configuration.routes,
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pump();
+
+      expect(
+        find.byType(ecran),
+        findsOneWidget,
+        reason: '$chemin ne doit pas rediriger : il précède la connexion',
+      );
+    });
+  });
 }
